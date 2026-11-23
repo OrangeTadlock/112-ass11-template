@@ -48,10 +48,9 @@ int cmp_int(const void *a, const void *b)
 
 int cmp_char(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+    const unsigned char x = *(const unsigned char *)a;
+    const unsigned char y = *(const unsigned char *)b;
+    return (x > y) - (x < y);
 }
 
 /*
@@ -64,10 +63,11 @@ int cmp_char(const void *a, const void *b)
 
 int cmp_strlen(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+    const char *x = *(const char * const *)a;
+    const char *y = *(const char * const *)b;
+    size_t len_x = strlen(x);
+    size_t len_y = strlen(y);
+    return (len_x > len_y) - (len_x < len_y);
 }
 
 /*
@@ -79,10 +79,9 @@ int cmp_strlen(const void *a, const void *b)
 
 int cmp_str(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+    const char *x = *(const char * const *)a;
+    const char *y = *(const char * const *)b;
+    return strcmp(x, y);
 }
 
 /*
@@ -97,10 +96,23 @@ int cmp_str(const void *a, const void *b)
 
 int is_anagram(const char *a, const char *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+    size_t len_a = strlen(a);
+    size_t len_b = strlen(b);
+
+    if (len_a != len_b || len_a >= 63) {
+        return 0;
+    }
+
+    char first[64];
+    char second[64];
+
+    strcpy(first, a);
+    strcpy(second, b);
+
+    qsort(first, len_a, sizeof(char), cmp_char);
+    qsort(second, len_b, sizeof(char), cmp_char);
+
+    return strcmp(first, second) == 0 ? 1 : 0;
 }
 
 /* ======================================================================
@@ -121,7 +133,10 @@ int is_anagram(const char *a, const char *b)
 
 void test_strlen_basic(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_strlen_basic (see STEP 1 in code.h)");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, (int)strlen("hello"), "strlen(\"hello\") should be 5");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, (int)strlen("a"), "strlen(\"a\") should be 1");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(13, (int)strlen("Hello, World!"), "strlen(\"Hello, World!\") should be 13");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(4, (int)strlen("  x "), "strlen(\"  x \") should be 4");
 }
 
 /*
@@ -138,7 +153,12 @@ void test_strlen_basic(void)
 
 void test_strlen_edge_cases(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_strlen_edge_cases (see STEP 2 in code.h)");
+    const char embedded[] = "ab\0cd";
+    char buf[10] = "abc";
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, (int)strlen(""), "strlen(\"\") should be 0");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(3, (int)strlen(buf), "strlen(buf) should be 3");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2, (int)strlen(embedded), "strlen(\"ab\\0cd\") should be 2");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, (int)strlen("line\n"), "strlen(\"line\\n\") should be 5");
 }
 
 /*
@@ -158,7 +178,14 @@ void test_strlen_edge_cases(void)
 
 void test_strcmp_signs(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_strcmp_signs (see STEP 3 in code.h)");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, strcmp("same", "same"), "strcmp(\"same\", \"same\") should be zero");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, strcmp("apple", "banana") < 0, "strcmp(\"apple\", \"banana\") should be negative");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, strcmp("banana", "apple") > 0, "strcmp(\"banana\", \"apple\") should be positive");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, strcmp("app", "apple") < 0, "strcmp(\"app\", \"apple\") should be negative");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, strcmp("apple", "app") > 0, "strcmp(\"apple\", \"app\") should be positive");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, strcmp("Zebra", "apple") < 0, "strcmp(\"Zebra\", \"apple\") should be negative");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, strcmp("a", "A") > 0, "strcmp(\"a\", \"A\") should be positive");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, strcmp("", "a") < 0, "strcmp(\"\", \"a\") should be negative");
 }
 
 /*
@@ -173,7 +200,13 @@ void test_strcmp_signs(void)
 
 void test_atoi_valid(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_atoi_valid (see STEP 4 in code.h)");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(123, atoi("123"), "atoi(\"123\") should be 123");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, atoi("0"), "atoi(\"0\") should be 0");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(-45, atoi("-45"), "atoi(\"-45\") should be -45");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(7, atoi("+7"), "atoi(\"+7\") should be 7");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(42, atoi("  42"), "atoi(\"  42\") should be 42");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(7, atoi("007"), "atoi(\"007\") should be 7");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2147483647, atoi("2147483647"), "atoi(\"2147483647\") should be 2147483647");
 }
 
 /*
@@ -189,7 +222,12 @@ void test_atoi_valid(void)
 
 void test_atoi_partial_and_invalid(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_atoi_partial_and_invalid (see STEP 5 in code.h)");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(12, atoi("12abc"), "atoi(\"12abc\") should be 12");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, atoi("abc"), "atoi(\"abc\") should be 0");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, atoi(""), "atoi(\"\") should be 0");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, atoi("-"), "atoi(\"-\") should be 0");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(3, atoi("3.9"), "atoi(\"3.9\") should be 3");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, atoi("1 2"), "atoi(\"1 2\") should be 1");
 }
 
 /*
@@ -205,7 +243,12 @@ void test_atoi_partial_and_invalid(void)
 
 void test_atol(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_atol (see STEP 6 in code.h)");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(123456, (int)atol("123456"), "atol(\"123456\") should be 123456");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2000000000, (int)atol("2000000000"), "atol(\"2000000000\") should be 2000000000");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(-2000000000, (int)atol("-2000000000"), "atol(\"-2000000000\") should be -2000000000");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(-99, (int)atol("  -99"), "atol(\"  -99\") should be -99");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(42, (int)atol("42xyz"), "atol(\"42xyz\") should be 42");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, (int)atol("x"), "atol(\"x\") should be 0");
 }
 
 /*
@@ -220,7 +263,13 @@ void test_atol(void)
 
 void test_atof(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_atof (see STEP 7 in code.h)");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(3.5, atof("3.5"), "atof(\"3.5\") should be 3.5");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-0.25, atof("-0.25"), "atof(\"-0.25\") should be -0.25");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1e3, atof("1e3"), "atof(\"1e3\") should be 1000.0");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(2.5, atof("  2.5xyz"), "atof(\"  2.5xyz\") should be 2.5");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.0, atof("abc"), "atof(\"abc\") should be 0.0");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(.5, atof(".5"), "atof(\".5\") should be 0.5");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(42, atof("42"), "atof(\"42\") should be 42.0");
 }
 
 /* ======================================================================
@@ -239,7 +288,13 @@ void test_atof(void)
 
 void test_sqrt(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_sqrt (see STEP 8 in code.h)");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.0, sqrt(0), "sqrt(0) should be 0");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.0, sqrt(1), "sqrt(1) should be 1");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(4.0, sqrt(16), "sqrt(16) should be 4");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(12.0, sqrt(144), "sqrt(144) should be 12");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.5, sqrt(0.25), "sqrt(0.25) should be 0.5");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1000.0, sqrt(1000000), "sqrt(1000000) should be 1000");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.4142135623730951, sqrt(2), "sqrt(2) should be approximately 1.4142135623730951");
 }
 
 /*
@@ -255,7 +310,15 @@ void test_sqrt(void)
 
 void test_pow(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_pow (see STEP 9 in code.h)");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1024.0, pow(2.0, 10.0), "pow(2, 10) should be 1024");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.0, pow(5.0, 0.0), "pow(5, 0) should be 1");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.0, pow(0.0, 0.0), "pow(0, 0) should be 1");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.5, pow(2.0, -1.0), "pow(2, -1) should be 0.5");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-8.0, pow(-2.0, 3.0), "pow(-2, 3) should be -8");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(4.0, pow(-2.0, 2.0), "pow(-2, 2) should be 4");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(3.0, pow(9.0, 0.5), "pow(9, 0.5) should be 3");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(100.0, pow(10.0, 2.0), "pow(10, 2) should be 100");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.0, pow(1.0, 1000.0), "pow(1, 1000) should be 1");
 }
 
 /*
@@ -271,7 +334,12 @@ void test_pow(void)
 
 void test_floor(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_floor (see STEP 10 in code.h)");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(2.0, floor(2.7), "floor(2.7) should be 2");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(2.0, floor(2.0), "floor(2.0) should be 2");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.0, floor(0.5), "floor(0.5) should be 0");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-3.0, floor(-2.1), "floor(-2.1) should be -3");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-2.0, floor(-2.0), "floor(-2.0) should be -2");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, floor(-0.5), "floor(-0.5) should be -1");
 }
 
 /*
@@ -286,7 +354,12 @@ void test_floor(void)
 
 void test_ceil(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_ceil (see STEP 11 in code.h)");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(3.0, ceil(2.1), "ceil(2.1) should be 3");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(2.0, ceil(2.0), "ceil(2.0) should be 2");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.0, ceil(0.5), "ceil(0.5) should be 1");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-2.0, ceil(-2.7), "ceil(-2.7) should be -2");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-2.0, ceil(-2.0), "ceil(-2.0) should be -2");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(5.0, ceil(5.0), "ceil(5.0) should be 5");
 }
 
 /*
@@ -302,7 +375,14 @@ void test_ceil(void)
 
 void test_round(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_round (see STEP 12 in code.h)");
+    TEST_ASSERT_EQUAL_MESSAGE(2, round(2.4), "round(2.4) should be 2");
+    TEST_ASSERT_EQUAL_MESSAGE(3, round(2.5), "round(2.5) should be 3");
+    TEST_ASSERT_EQUAL_MESSAGE(3, round(2.6), "round(2.6) should be 3");
+    TEST_ASSERT_EQUAL_MESSAGE(-2, round(-2.4), "round(-2.4) should be -2");
+    TEST_ASSERT_EQUAL_MESSAGE(-3, round(-2.5), "round(-2.5) should be -3");
+    TEST_ASSERT_EQUAL_MESSAGE(-3, round(-2.6), "round(-2.6) should be -3");
+    TEST_ASSERT_EQUAL_MESSAGE(0, round(0.0), "round(0.0) should be 0");
+    TEST_ASSERT_EQUAL_MESSAGE(7, round(7.0), "round(7.0) should be 7");
 }
 
 /*
@@ -318,7 +398,12 @@ void test_round(void)
 
 void test_fmod(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_fmod (see STEP 13 in code.h)");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.5, fmod(7.5, 2.0), "fmod(7.5, 2) should be 1.5");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.0, fmod(10.0, 3.0), "fmod(10, 3) should be 1");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.0, fmod(9.0, 3.0), "fmod(9, 3) should be 0");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.5, fmod(-7.5, 2.0), "fmod(-7.5, 2) should be -1.5");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.5, fmod(7.5, -2.0), "fmod(7.5, -2) should be 1.5");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(2.0, fmod(2.0, 5.0), "fmod(2, 5) should be 2");
 }
 
 /*
@@ -335,7 +420,31 @@ void test_fmod(void)
 
 void test_floor_ceil_round_relation(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_floor_ceil_round_relation (see STEP 14 in code.h)");
+    const double test_values[] = {0.1, 2.5, -2.5, -0.9, 100.99, -100.01};
+    const size_t num_test_values = sizeof(test_values) / sizeof(test_values[0]);
+    const double exact_values[] = {-3.0, 0.0, 8.0};
+    const size_t num_exact_values = sizeof(exact_values) / sizeof(exact_values[0]);
+
+    // Test the relations for the first set of values
+    for (size_t i = 0; i < num_test_values; i++) {
+        double x = test_values[i];
+        double floored = floor(x);
+        double ceiled = ceil(x);
+        double rounded = round(x);
+
+        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(ceiled - floored, 1.0, "ceil(x) - floor(x) should be 1");
+        TEST_ASSERT_TRUE_MESSAGE(floored <= x, "floor(x) should be less than or equal to x");
+        TEST_ASSERT_TRUE_MESSAGE(x <= ceiled, "x should be less than or equal to ceil(x)");
+        TEST_ASSERT_TRUE_MESSAGE(floored <= rounded && rounded <= ceiled, "round(x) should lie between floor(x) and ceil(x)");
+    }
+
+    // Test the exact values
+    for (size_t i = 0; i < num_exact_values; i++) {
+        double x = exact_values[i];
+        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(floor(x), x, "floor(x) should equal x");
+        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(ceil(x), x, "ceil(x) should equal x");
+        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(round(x), x, "round(x) should equal x");
+    }
 }
 
 /* ======================================================================
@@ -358,7 +467,20 @@ void test_floor_ceil_round_relation(void)
 
 void test_memcpy_int_array(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_memcpy_int_array (see STEP 15 in code.h)");
+    int src[5] = {1, 2, 3, 4, -1};
+    int dest[5] = {0};
+    int dest2[5] = {0};
+
+    // Test memcpy() on the entire array
+    void *returned = memcpy(dest, src, sizeof src);
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(dest, returned, "memcpy() should return the destination pointer");
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(src, dest, 5, "memcpy() should copy the entire array");
+
+    // Test memcpy() on a portion of the array
+    memset(dest2, 0, sizeof dest2);
+    memcpy(dest2, src, 3 * sizeof(int));
+    int expected2[5] = {1, 2, 3, 0, 0};
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(expected2, dest2, 5, "memcpy() should copy only the specified number of bytes");
 }
 
 /*
@@ -377,7 +499,27 @@ void test_memcpy_int_array(void)
 
 void test_memcpy_string_and_zero_bytes(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_memcpy_string_and_zero_bytes (see STEP 16 in code.h)");
+    char buf[10];
+    memset(buf, 'X', 9);
+    buf[9] = '\0';
+
+    // Test memcpy() on a string with terminator
+    memcpy(buf, "hello", 6);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("hello", buf, "memcpy() should copy the string and its terminator");
+    TEST_ASSERT_EQUAL_INT_MESSAGE('X', buf[6], "The byte after the copied string should remain 'X'");
+
+    // Test memcpy() on a string without terminator
+    memset(buf, 'X', 10);
+    buf[9] = '\0';
+    memcpy(buf, "hello", 5);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("hello", buf, "memcpy() should copy the string without the terminator");
+    TEST_ASSERT_EQUAL_INT_MESSAGE('X', buf[5], "The byte after the copied string should remain 'X'");
+
+    // Test memcpy() with zero bytes
+    memset(buf, 'X', 10);
+    buf[9] = '\0';
+    memcpy(buf, "hello", 0);
+    TEST_ASSERT_EQUAL_INT_MESSAGE('X', buf[0], "Copying zero bytes should not change the buffer");
 }
 
 /*
@@ -396,7 +538,36 @@ void test_memcpy_string_and_zero_bytes(void)
 
 void test_memset_and_memcmp(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_memset_and_memcmp (see STEP 17 in code.h)");
+    unsigned char buf[8];
+    unsigned char expected[8];
+
+    // Test memset() with 'A'
+    memset(buf, 'A', 8);
+    for (int i = 0; i < 8; i++) {
+        TEST_ASSERT_EQUAL_INT_MESSAGE('A', buf[i], "memset() should fill every byte with the specified value");
+    }
+
+    // Test memset() with 0
+    memset(buf, 0, 8);
+    for (int i = 0; i < 8; i++) {
+        TEST_ASSERT_EQUAL_INT_MESSAGE(0, buf[i], "memset() should fill every byte with zero");
+    }
+
+    // Test memset() with 'B' for the first 4 bytes
+    memset(buf, 'B', 4);
+    for (int i = 0; i < 4; i++) {
+        TEST_ASSERT_EQUAL_INT_MESSAGE('B', buf[i], "memset() should fill the specified number of bytes");
+    }
+    for (int i = 4; i < 8; i++) {
+        TEST_ASSERT_EQUAL_INT_MESSAGE(0, buf[i], "memset() should not change bytes outside the specified range");
+    }
+
+    // Test memcmp() with identical strings
+    char a[] = "abcdX";
+    char b[] = "abcdY";
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, memcmp(a, a, 5), "memcmp() should return 0 for identical strings");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, memcmp(a, b, 4), "memcmp() should return 0 for the first n bytes of different strings");
+    TEST_ASSERT_TRUE_MESSAGE(memcmp(a, b, 5) < 0 && memcmp(b, a, 5) > 0, "memcmp() should return negative for a < b and positive for a > b");
 }
 
 /*
@@ -414,7 +585,31 @@ void test_memset_and_memcmp(void)
 
 void test_strcpy_strcat(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_strcpy_strcat (see STEP 18 in code.h)");
+    char buf[20];
+    memset(buf, 'X', 19);
+    buf[19] = '\0';
+
+    // Test strcpy()
+    char *returned = strcpy(buf, "abc");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("abc", buf, "strcpy() should copy the string and its terminator");
+    TEST_ASSERT_EQUAL_INT_MESSAGE('\0', buf[3], "The byte after the copied string should be the null terminator");
+    TEST_ASSERT_EQUAL_INT_MESSAGE('X', buf[4], "The byte after the null terminator should remain 'X'");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(buf, returned, "strcpy() should return the destination pointer");
+
+    // Test strcat()
+    returned = strcat(buf, "def");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("abcdef", buf, "strcat() should concatenate the strings");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(buf, returned, "strcat() should return the destination pointer");
+
+    // Test strcat() with an empty string
+    returned = strcat(buf, "");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("abcdef", buf, "strcat() with an empty string should not change the buffer");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(buf, returned, "strcat() should return the destination pointer");
+
+    // Test strcat() with a single character
+    returned = strcat(buf, "!");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("abcdef!", buf, "strcat() should concatenate a single character");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(7, (int)strlen(buf), "The length of the concatenated string should be 7");
 }
 
 /*
@@ -431,7 +626,26 @@ void test_strcpy_strcat(void)
 
 void test_strchr(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_strchr (see STEP 19 in code.h)");
+    char s[] = "hello";
+    char *found;
+
+    // Test for a character that exists
+    found = strchr(s, 'l');
+    TEST_ASSERT_NOT_EQUAL_PTR_MESSAGE(NULL, found, "strchr() should return a pointer to the first occurrence of the character");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2, (int)(found - s), "The index of the first 'l' should be 2");
+
+    // Test for a character that does not exist
+    found = strchr(s, 'z');
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(NULL, found, "strchr() should return NULL for a character that does not occur");
+
+    // Test for the terminator
+    found = strchr(s, '\0');
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, (int)(found - s), "The index of the null terminator should be 5");
+
+    // Test with an empty string
+    char empty[] = "";
+    found = strchr(empty, 'a');
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(NULL, found, "strchr() should return NULL for an empty string");
 }
 
 /*
@@ -449,7 +663,53 @@ void test_strchr(void)
 
 void test_sprintf_integers(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_sprintf_integers (see STEP 20 in code.h)");
+    char buf[64];
+    int result;
+
+    // Test "%d" of 42
+    result = sprintf(buf, "%d", 42);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("42", buf, "sprintf() with \"%d\" should produce the correct string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2, result, "sprintf() with \"%d\" should return the correct number of characters");
+
+    // Test "%d" of -7
+    result = sprintf(buf, "%d", -7);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("-7", buf, "sprintf() with \"%d\" should produce the correct string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2, result, "sprintf() with \"%d\" should return the correct number of characters");
+
+    // Test "%05d" of 42
+    result = sprintf(buf, "%05d", 42);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("00042", buf, "sprintf() with \"%05d\" should produce the correct string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, result, "sprintf() with \"%05d\" should return the correct number of characters");
+
+    // Test "%5d" of 42
+    result = sprintf(buf, "%5d", 42);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("   42", buf, "sprintf() with \"%5d\" should produce the correct string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, result, "sprintf() with \"%5d\" should return the correct number of characters");
+
+    // Test "%-5d|" of 42
+    result = sprintf(buf, "%-5d|", 42);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("42   |", buf, "sprintf() with \"%-5d|\" should produce the correct string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(6, result, "sprintf() with \"%-5d|\" should return the correct number of characters");
+
+    // Test "%x" of 255
+    result = sprintf(buf, "%x", 255);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("ff", buf, "sprintf() with \"%x\" should produce the correct string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2, result, "sprintf() with \"%x\" should return the correct number of characters");
+
+    // Test "%X" of 255
+    result = sprintf(buf, "%X", 255);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("FF", buf, "sprintf() with \"%X\" should produce the correct string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2, result, "sprintf() with \"%X\" should return the correct number of characters");
+
+    // Test "%o" of 8
+    result = sprintf(buf, "%o", 8);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("10", buf, "sprintf() with \"%o\" should produce the correct string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2, result, "sprintf() with \"%o\" should return the correct number of characters");
+
+    // Test "%+d" of 5
+    result = sprintf(buf, "%+d", 5);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("+5", buf, "sprintf() with \"%+d\" should produce the correct string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(2, result, "sprintf() with \"%+d\" should return the correct number of characters");
 }
 
 /*
@@ -467,7 +727,18 @@ void test_sprintf_integers(void)
 
 void test_sprintf_strings_and_doubles(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_sprintf_strings_and_doubles (see STEP 21 in code.h)");
+    char buf[64];
+
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("abc", sprintf(buf, "%s", "abc"), "sprintf() with \"%s\" should produce the correct string");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("Z", sprintf(buf, "%c", 'Z'), "sprintf() with \"%c\" should produce the correct string");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("ab   |", sprintf(buf, "%-6s|", "ab"), "sprintf() with \"%-6s|\" should produce the correct string");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("    ab", sprintf(buf, "%6s", "ab"), "sprintf() with \"%6s\" should produce the correct string");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("ab", sprintf(buf, "%.2s", "abcdef"), "sprintf() with \"%.2s\" should produce the correct string");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("3.14", sprintf(buf, "%.2f", 3.14159), "sprintf() with \"%.2f\" should produce the correct string");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("2.000", sprintf(buf, "%.3f", 2.0), "sprintf() with \"%.3f\" should produce the correct string");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("    3.14", sprintf(buf, "%8.2f", 3.14159), "sprintf() with \"%8.2f\" should produce the correct string");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("0.500000", sprintf(buf, "%f", 0.5), "sprintf() with \"%f\" should produce the correct string");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("100%%", sprintf(buf, "100%%"), "sprintf() with \"100%%\" should produce the correct string");
 }
 
 /*
@@ -485,7 +756,28 @@ void test_sprintf_strings_and_doubles(void)
 
 void test_sprintf_return_matches_strlen(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_sprintf_return_matches_strlen (see STEP 22 in code.h)");
+    char buf[64];
+    int ret;
+
+    ret = sprintf(buf, "%d", 12345);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, ret, "sprintf() should return the correct number of characters");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, (int)strlen(buf), "strlen() should match the return value of sprintf()");
+
+    ret = sprintf(buf, "%s-%s", "ab", "cd");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, ret, "sprintf() should return the correct number of characters");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, (int)strlen(buf), "strlen() should match the return value of sprintf()");
+
+    ret = sprintf(buf, "%5.2f", 3.14159);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, ret, "sprintf() should return the correct number of characters");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(5, (int)strlen(buf), "strlen() should match the return value of sprintf()");
+
+    ret = sprintf(buf, "%s", "");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, ret, "sprintf() should return the correct number of characters for an empty string");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, (int)strlen(buf), "strlen() should match the return value of sprintf() for an empty string");
+
+    ret = sprintf(buf, "%s: %s, %s: %d", "Name", "Ann", "Age", 21);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(18, ret, "sprintf() should return the correct number of characters");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(18, (int)strlen(buf), "strlen() should match the return value of sprintf()");
 }
 
 /* ======================================================================
@@ -508,8 +800,39 @@ void test_sprintf_return_matches_strlen(void)
  */
 
 void test_qsort_ints(void)
-{
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_qsort_ints (see STEP 23 in code.h)");
+{  
+    int arr1[] = {5, 2, 9, 1, 7};
+    qsort(arr1, 5, sizeof(int), cmp_int);
+    int e_arr1[] = {1, 2, 5, 7, 9};
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(e_arr1, arr1, 5, "qsort() should sort the array {5, 2, 9, 1, 7} into {1, 2, 5, 7, 9}");
+    int arr2[] = {9, 8, 7, 6, 5};
+    qsort(arr2, 5, sizeof(int), cmp_int);
+    int e_arr2[] = {5, 6, 7, 8, 9};
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(e_arr2, arr2, 5, "qsort() should sort the array {9, 8, 7, 6, 5} into {5, 6, 7, 8, 9}");
+    int arr3[] = {1, 2, 3, 4, 5};
+    qsort(arr3, 5, sizeof(int), cmp_int);
+    int e_arr3[] = {1, 2, 3, 4, 5};
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(e_arr3, arr3, 5, "qsort() should leave the already sorted array {1, 2, 3, 4, 5} unchanged");
+    int arr4[] = {3, 1, 3, 1};
+    qsort(arr4, 4, sizeof(int), cmp_int);
+    int e_arr4[] = {1, 1, 3, 3};
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(e_arr4, arr4, 4, "qsort() should sort the array {3, 1, 3, 1} into {1, 1, 3, 3}");
+    int arr5[] = {-3, -1, -2, 0, 2};
+    qsort(arr5, 5, sizeof(int), cmp_int);
+    int e_arr5[] = {-3, -2, -1, 0, 2};
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(e_arr5, arr5, 5, "qsort() should sort the array {-3, -1, -2, 0, 2} into {-3, -2, -1, 0, 2}");
+    int arr6[] = {9, 8, 7, 0};
+    qsort(arr6, 4, sizeof(int), cmp_int);
+    int e_arr6[] = {0, 7, 8, 9};
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(e_arr6, arr6, 4, "qsort() should sort the array {9, 8, 7, 0} into {0, 7, 8, 9}");
+    int arr7[] = {42};
+    qsort(arr7, 1, sizeof(int), cmp_int);
+    int e_arr7[] = {42};
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(e_arr7, arr7, 1, "qsort() should leave the single-element array {42} unchanged");
+    int arr8[] = {1, 2, 3, 4, 5};
+    qsort(arr8, 0, sizeof(int), cmp_int);
+    int e_arr8[] = {1, 2, 3, 4, 5};
+    TEST_ASSERT_EQUAL_INT_ARRAY_MESSAGE(e_arr8, arr8, 0, "qsort() should not modify the array when count is 0");
 }
 
 /*
@@ -527,7 +850,25 @@ void test_qsort_ints(void)
 
 void test_qsort_chars(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_qsort_chars (see STEP 24 in code.h)");
+    char word1[] = "hello";
+    qsort(word1, strlen(word1), sizeof(char), cmp_char);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("ehllo", word1, "qsort() should sort the string \"hello\" into \"ehllo\"");
+
+    char word2[] = "dcba";
+    qsort(word2, strlen(word2), sizeof(char), cmp_char);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("abcd", word2, "qsort() should sort the string \"dcba\" into \"abcd\"");
+
+    char word3[] = "abc";
+    qsort(word3, strlen(word3), sizeof(char), cmp_char);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("abc", word3, "qsort() should leave the already sorted string \"abc\" unchanged");
+
+    char word4[] = "zzz";
+    qsort(word4, strlen(word4), sizeof(char), cmp_char);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("zzz", word4, "qsort() should leave the string of equal letters \"zzz\" unchanged");
+
+    char word5[] = "";
+    qsort(word5, strlen(word5), sizeof(char), cmp_char);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("", word5, "qsort() should leave the empty string unchanged");
 }
 
 /*
@@ -546,7 +887,19 @@ void test_qsort_chars(void)
 
 void test_qsort_strings(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_qsort_strings (see STEP 25 in code.h)");
+    char *words_by_length[] = {"ccc", "a", "dddd", "bb"};
+    qsort(words_by_length, 4, sizeof(char *), cmp_strlen);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("a", words_by_length[0], "qsort() should sort the strings by length");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("bb", words_by_length[1], "qsort() should sort the strings by length");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("ccc", words_by_length[2], "qsort() should sort the strings by length");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("dddd", words_by_length[3], "qsort() should sort the strings by length");
+
+    char *words_alphabetically[] = {"pear", "apple", "Zed", "app"};
+    qsort(words_alphabetically, 4, sizeof(char *), cmp_str);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("Zed", words_alphabetically[0], "qsort() should sort the strings alphabetically");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("app", words_alphabetically[1], "qsort() should sort the strings alphabetically");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("apple", words_alphabetically[2], "qsort() should sort the strings alphabetically");
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("pear", words_alphabetically[3], "qsort() should sort the strings alphabetically");
 }
 
 /*
@@ -564,7 +917,11 @@ void test_qsort_strings(void)
 
 void test_roundtrip_sprintf_atoi_atof(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_roundtrip_sprintf_atoi_atof (see STEP 26 in code.h)");
+    int arr[] = {0, 7, -15, 1234567, -2000000000};
+    int expected_lengths[] = {1, 1, 3, 7, 11};
+    char buf[64]; 
+    TEST_ASSERT_EQUAL_INT_MESSAGE(sizeof(arr)/sizeof(arr[0]), sizeof(expected_lengths)/sizeof(expected_lengths[0]), "Arrays must have the same length");
+
 }
 
 /*
@@ -582,5 +939,11 @@ void test_roundtrip_sprintf_atoi_atof(void)
 
 void test_anagram_with_qsort(void)
 {
-    TEST_FAIL_MESSAGE("Not implemented yet: write test_anagram_with_qsort (see STEP 27 in code.h)");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, is_anagram("listen", "silent"), "listen and silent are anagrams");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, is_anagram("hello", "world"), "hello and world are not anagrams");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, is_anagram("abc", "abcd"), "abc and abcd are not anagrams");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, is_anagram("", ""), "empty strings are anagrams");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, is_anagram("aab", "abb"), "aab and abb are not anagrams");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, is_anagram("Listen", "silent"), "Listen and silent are not anagrams (case matters)");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, is_anagram("a", "a"), "a and a are anagrams");
 }
